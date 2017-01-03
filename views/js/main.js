@@ -501,10 +501,21 @@ function updatePositions() {
   frame++;
   window.performance.mark("mark_start_frame");
 
-  var items = document.querySelectorAll('.mover');
-  for (var i = 0; i < items.length; i++) {
-    var phase = Math.sin((document.body.scrollTop / 1250) + (i % 5));
-    items[i].style.left = items[i].basicLeft + 100 * phase + 'px';
+  //getelementsbyclassname returns a live nodelist, which is faster than querySelectorAll that
+  //returns a static nodelist
+  var items = document.getElementsByClassName('mover');
+  //Reduce calculation in for-loop
+  var phases = [];
+  var scrollTop = document.body.scrollTop
+  for (i = 0; i < 5; i++) {
+    phases.push(100 * Math.sin((scrollTop / 1250) + i))
+  }
+  var i;
+  var l = items.length;
+  var halfScreenWidth = ((window.innerWidth > 0) ? window.innerWidth : screen.width) / 2;
+  for (i = 0; i < l; i++) {
+    items[i].style.webkitTransform = 'translateX('+ (items[i].basicLeft + phases[i % 5] - halfScreenWidth) +'px)';
+    // items[i].style.left = left;
   }
 
   // User Timing API to the rescue again. Seriously, it's worth learning.
@@ -520,11 +531,28 @@ function updatePositions() {
 // runs updatePositions on scroll
 window.addEventListener('scroll', updatePositions);
 
+var numofPizza = 0
+
+// Calculate the number of pizzas based on the vieport size
+function calcNumofPizzas(cols, s) {
+  var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+  var rows = Math.ceil(h/s)
+  // the number of pizzas determined by column and row numbers
+
+  numofPizza = cols * rows
+  return numofPizza
+}
+
+// window.addEventListener('scroll', updatePositions);
+
 // Generates the sliding pizzas when the page loads.
 document.addEventListener('DOMContentLoaded', function() {
   var cols = 8;
   var s = 256;
-  for (var i = 0; i < 200; i++) {
+  // get the number of pizzas
+  calcNumofPizzas(cols, s)
+
+  for (var i = 0; i < numofPizza; i++) {
     var elem = document.createElement('img');
     elem.className = 'mover';
     elem.src = "images/pizza.png";
@@ -534,5 +562,6 @@ document.addEventListener('DOMContentLoaded', function() {
     elem.style.top = (Math.floor(i / cols) * s) + 'px';
     document.querySelector("#movingPizzas1").appendChild(elem);
   }
+
   updatePositions();
 });
